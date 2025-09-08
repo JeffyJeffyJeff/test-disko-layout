@@ -1,18 +1,8 @@
 {
-  lib,
-  pkgs,
-  config,
-  devicePath,
-  swapPart ? false,
-  swapSize,
-  hiberation ? false,
-  ...
-}:
-{
   disko.devices.disk = {
     disk0 = {
       type = "disk";
-      device = devicePath;
+      device = "dev/vda";
       content = {
         type = "gpt";
         partitions = {
@@ -37,10 +27,6 @@
               extraOpenArgs = [ ];
               settings = {
                 allowDiscards = true;
-                crypttabExtraOpts = [
-                  "fido2-device=auto"
-                  "token-timeout=10"
-                ];
               };
               content = {
                 type = "lvm-pv";
@@ -56,13 +42,13 @@
     pool = {
       type = "lvm_vg";
       lvs = {
-        swap = lib.mkIf swapPart {
-          size = swapSize;
+        swap = {
+          size = "12G";
           label = "SWAP";
           content = {
             type = "swap";
             discardPolicy = "both";
-            resumeDevice = hibernation;
+            resumeDevice = true;
           };
         };
         fs = {
@@ -79,7 +65,7 @@
               mountOptions = [ "compress=zstd" ];
             };
             "@persist" = {
-              mountpoint = "${config.hostSpec.persistFolder}";
+              mountpoint = "/persist";
               mountOptions = [ "compress=zstd" "noatime" ];
             };
             "@nix" = {
